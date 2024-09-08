@@ -1,5 +1,6 @@
 package com.TrungTinhFullStack.blog_backend_http.Service;
 
+import com.TrungTinhFullStack.blog_backend_http.Dto.ReqRes;
 import com.TrungTinhFullStack.blog_backend_http.Entity.Post;
 import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Repository.PostRepository;
@@ -23,7 +24,7 @@ import java.util.List;
 @Configuration
 public interface UserService {
 
-    User login(String username, String password);
+    ReqRes login(ReqRes reqRes);
     User register(String username,String password,String email,MultipartFile img) throws IOException;
     void createInitialAdmin() throws IOException;
     String hashPassword(String password);

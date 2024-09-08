@@ -1,10 +1,16 @@
 package com.TrungTinhFullStack.blog_backend_http.Service.Impl;
 
+import com.TrungTinhFullStack.blog_backend_http.Dto.ReqRes;
 import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
+import com.TrungTinhFullStack.blog_backend_http.Service.Jwt.JwtUtils;
 import com.TrungTinhFullStack.blog_backend_http.Service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -23,12 +30,52 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JwtUtils jwtUtils;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private static final String UPLOAD_DIR = "/uploads";
 
+
     @Override
-    public User login(String username, String password) {
-        String hashedPassword = hashPassword(password);
-        return userRepository.findByUsernameAndPassword(username, hashedPassword);
+    public ReqRes login(ReqRes reqRes) {
+        ReqRes res = new ReqRes();
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(reqRes.getUsername(), reqRes.getPassword()));
+
+            var user = userRepository.findByUsername(reqRes.getUsername());
+            if (user == null) {
+                throw new BadCredentialsException("User not found");
+            }
+
+            var jwt = jwtUtils.generateToken(user);
+            var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
+
+            res.setStatusCode(200L);
+            res.setMessage("User login success !");
+            res.setId(user.getId());
+            res.setUsername(reqRes.getUsername());
+            res.setImg(user.getImg());
+            res.setToken(jwt);
+            res.setRefreshToken(refreshToken);
+            res.setExpirationTime("24Hrs");
+
+            return res;
+
+        } catch (BadCredentialsException e) {
+            res.setStatusCode(403L);
+            res.setMessage("Invalid credentials");
+            return res;
+        } catch (Exception e) {
+            res.setStatusCode(500L);
+            res.setMessage(e.getMessage());
+            return res;
+        }
     }
 
     @Override
@@ -51,8 +98,8 @@ public class UserServiceImpl implements UserService {
 
 
         // Hash the password before saving
-        String hashedPassword = hashPassword(password);
-        user.setPassword(hashedPassword);
+//        String hashedPassword = hashPassword(password);
+        user.setPassword(passwordEncoder.encode(password));
         user.setUsername(username);
         user.setEmail(email);
         user.setImg(fileName);
@@ -119,7 +166,7 @@ public class UserServiceImpl implements UserService {
                 .map(user -> {
                     user.setUsername(username);
                     if (password != null && !password.isEmpty()) {
-                        user.setPassword(hashPassword(password));
+                        user.setPassword(passwordEncoder.encode(password));
                     }
                     user.setEmail(email);
                     // Update other fields as necessary

@@ -1,5 +1,6 @@
 package com.TrungTinhFullStack.blog_backend_http.Controller;
 
+import com.TrungTinhFullStack.blog_backend_http.Dto.ReqRes;
 import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,28 +21,16 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginUser) {
-        String username = loginUser.getUsername();
-        String password = loginUser.getPassword();
-
-        User user = userService.login(username, password);
-        if (user != null) {
-            // Return username and user_id in a JSON object
-            return ResponseEntity.ok().body(
-                    Map.of("username", user.getUsername(), "user_id", user.getId())
-            );
-        } else {
-            // Handle login failure
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
+    public ResponseEntity<?> login(@RequestBody ReqRes reqRes) {
+        return ResponseEntity.ok(userService.login(reqRes));
     }
 
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestParam("username") String username,
-                                           @RequestParam("password") String password,
-                                           @RequestParam("email") String email,
-                                           @RequestParam("img") MultipartFile img
+    public ResponseEntity<String> register(@RequestPart("username") String username,
+                                           @RequestPart("password") String password,
+                                           @RequestPart("email") String email,
+                                           @RequestPart("img") MultipartFile img
                                           ) {
         try {
             userService.register(username,password,email,img);
@@ -62,10 +51,11 @@ public class AuthController {
     }
 
     @PutMapping("/users/{id}")
-    public User updateUser(@PathVariable Long id,@RequestParam("username") String username,
-                           @RequestParam("password") String password,
-                           @RequestParam("email") String email,
-                           @RequestParam("img") MultipartFile img) {
+    public User updateUser(@PathVariable Long id,@RequestPart("username") String username,
+                           @RequestPart("password") String password,
+                           @RequestPart("email") String email,
+                           @RequestPart(value = "img", required = false) MultipartFile img
+                           ) {
         return userService.updateUser(id,username,password,email,img);
     }
 
