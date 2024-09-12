@@ -8,6 +8,7 @@ import com.TrungTinhFullStack.blog_backend_http.Repository.CategoryRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.NotificationRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.PostRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
+import com.TrungTinhFullStack.blog_backend_http.Service.NotificationService;
 import com.TrungTinhFullStack.blog_backend_http.Service.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private UserRepository userRepository;
@@ -65,15 +69,21 @@ public class PostServiceImpl implements PostService {
         post.setTags(tags);
         post.setCategory(category1);
 
-        List<User> user1 = userRepository.findAll();
-        for(User user2 : user1) {
-            Notification notification = new Notification();
-            notification.setMessage("Người dùng "+user.getUsername()+" vừa đăng bài viết "+name);
-            notification.setDate(new Date());
-            notification.setUser(user2);
-            notification.setRead(false);
-            notificationRepository.save(notification);
-        }
+//        List<User> user1 = userRepository.findAll();
+//        for(User user2 : user1) {
+//            Notification notification = new Notification();
+//            notification.setMessage("Người dùng "+user.getUsername()+" vừa đăng bài viết "+name);
+//            notification.setDate(new Date());
+//            notification.setUser(user2);
+//            notification.setRead(false);
+//            notificationRepository.save(notification);
+//        }
+
+       // Lấy danh sách người dùng mà bạn muốn thông báo
+        Iterable<User> users = userRepository.findAll(); // Hoặc sử dụng một tiêu chí khác để lấy người dùng
+
+        // Thông báo và lưu thông báo vào DB
+        notificationService.notifyUsersAboutNewPost(post.getName(),user.getUsername(), users);
 
         return postRepository.save(post);
     }
