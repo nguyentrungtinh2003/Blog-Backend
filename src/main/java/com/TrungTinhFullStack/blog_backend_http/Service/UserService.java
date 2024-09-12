@@ -6,6 +6,7 @@ import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Repository.PostRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.aspectj.weaver.MemberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,7 @@ import java.util.List;
 @Configuration
 public interface UserService {
 
-    ReqRes login(ReqRes reqRes);
+    ReqRes login(ReqRes reqRes, HttpServletResponse response);
     User register(String username,String password,String email,MultipartFile img) throws IOException;
     void createInitialAdmin() throws IOException;
     String hashPassword(String password);
@@ -33,4 +34,5 @@ public interface UserService {
     User getUserById(Long id);
     User updateUser(Long id, String username, String password, String email, MultipartFile img);
     void deleteUser(Long id);
+    void enableUser(Long userId, boolean enable);
 }

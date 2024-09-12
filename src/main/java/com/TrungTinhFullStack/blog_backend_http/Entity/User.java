@@ -1,16 +1,14 @@
 package com.TrungTinhFullStack.blog_backend_http.Entity;
 
 import com.TrungTinhFullStack.blog_backend_http.Service.Jwt.UserDetailsService;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 
 @Entity
@@ -30,6 +28,9 @@ public class User implements UserDetails {
 
     private String img;
 
+    @Column(nullable = false)
+    private boolean enabled;
+
     public User() {
 
     }
@@ -41,10 +42,18 @@ public class User implements UserDetails {
         this.email = email;
         this.img = img;
     }
+    public User(Long id, String email, String img, String password, String username, boolean enabled) {
+        this.id = id;
+        this.email = email;
+        this.img = img;
+        this.password = password;
+        this.username = username;
+        this.enabled = enabled;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return List.of(); // Trả về danh sách trống nếu không có phân vai trò
     }
 
     @Override
@@ -69,6 +78,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }

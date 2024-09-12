@@ -2,10 +2,13 @@ package com.TrungTinhFullStack.blog_backend_http.Service.Impl;
 
 import com.TrungTinhFullStack.blog_backend_http.Dto.ReqRes;
 import com.TrungTinhFullStack.blog_backend_http.Entity.User;
+import com.TrungTinhFullStack.blog_backend_http.Repository.NotificationRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
 import com.TrungTinhFullStack.blog_backend_http.Service.Jwt.JwtUtils;
 import com.TrungTinhFullStack.blog_backend_http.Service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -39,11 +42,14 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     private static final String UPLOAD_DIR = "/uploads";
 
 
     @Override
-    public ReqRes login(ReqRes reqRes) {
+    public ReqRes login(ReqRes reqRes, HttpServletResponse response) {
         ReqRes res = new ReqRes();
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(reqRes.getUsername(), reqRes.getPassword()));
@@ -56,6 +62,13 @@ public class UserServiceImpl implements UserService {
             var jwt = jwtUtils.generateToken(user);
             var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
 
+            // Tạo cookie chứa JWT token
+            Cookie jwtCookie = new Cookie("authToken", jwt);
+            jwtCookie.setHttpOnly(true); // Cookie không thể truy cập từ JavaScript để bảo mật
+            jwtCookie.setMaxAge(24 * 60 * 60); // Cookie hết hạn sau 24 giờ
+            jwtCookie.setPath("/"); // Có hiệu lực trên toàn bộ ứng dụng
+            response.addCookie(jwtCookie); // Thêm cookie vào phản hồi
+
             res.setStatusCode(200L);
             res.setMessage("User login success !");
             res.setId(user.getId());
@@ -64,6 +77,7 @@ public class UserServiceImpl implements UserService {
             res.setToken(jwt);
             res.setRefreshToken(refreshToken);
             res.setExpirationTime("24Hrs");
+            res.setEnable(user.isEnabled());
 
             return res;
 
@@ -103,6 +117,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(username);
         user.setEmail(email);
         user.setImg(fileName);
+        user.setEnabled(true);
 
         // Save the user
         return userRepository.save(user);
@@ -184,7 +199,15 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id)) {
             throw new EntityNotFoundException("User not found");
         }
+        notificationRepository.deleteByUserId(id);
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public void enableUser(Long userId, boolean enable) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setEnabled(enable);
+        userRepository.save(user);
     }
 
 }

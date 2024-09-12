@@ -28,4 +28,6 @@ public class ReqRes {
     private String expirationTime;
 
     private String img;
+
+    private boolean enable;
 }
