@@ -3,6 +3,7 @@ package com.TrungTinhFullStack.blog_backend_http.Controller;
 import com.TrungTinhFullStack.blog_backend_http.Entity.Category;
 import com.TrungTinhFullStack.blog_backend_http.Entity.Post;
 import com.TrungTinhFullStack.blog_backend_http.Repository.PostRepository;
+import com.TrungTinhFullStack.blog_backend_http.Service.NotificationFacService;
 import com.TrungTinhFullStack.blog_backend_http.Service.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private NotificationFacService notificationFacService;
+
 //    @PostMapping
 //    public ResponseEntity<?> createPost(@RequestBody Post post) {
 //        try {
@@ -44,7 +48,14 @@ public class PostController {
                            @RequestParam("postedBy") Long userId,
                            @RequestParam("img") MultipartFile img,
                            @RequestParam("tags") List<String> tags,
-                           @RequestParam("category") Long category) throws IOException {
+                           @RequestParam("category") Long category,
+                           @RequestParam("recipientEmail") String recipientEmail,
+                           @RequestParam("notificationType") String notificationType) throws IOException {
+
+        String message = "Người dùng đã tạo bài viết " + name;
+        // Gửi thông báo dựa trên loại (EMAIL, SMS, PUSH)
+        notificationFacService.sendNotification(notificationType, message, recipientEmail);
+
         return postService.createPost(name, content, userId, img, tags, category);
     }
 
@@ -128,5 +139,13 @@ public class PostController {
     @GetMapping("/newPost")
     public List <Post> findLast3Posts() {
         return postRepository.findLast3Posts();
+    }
+
+    @GetMapping("/search")
+    public List<Post> searchPosts(
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String content) {
+        return postService.searchPosts(author, title, content);
     }
 }

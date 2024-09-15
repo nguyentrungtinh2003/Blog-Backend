@@ -10,8 +10,10 @@ import com.TrungTinhFullStack.blog_backend_http.Repository.PostRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
 import com.TrungTinhFullStack.blog_backend_http.Service.NotificationService;
 import com.TrungTinhFullStack.blog_backend_http.Service.PostService;
+import com.TrungTinhFullStack.blog_backend_http.Specification.PostSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -167,6 +169,12 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Post> findByPostedById(Long id) {
         return postRepository.findByPostedById(id);
+    }
+
+    @Override
+    public List<Post> searchPosts(String author, String title, String content) {
+        Specification<Post> specification = PostSpecification.filterByCriteria(author, title, content);
+        return postRepository.findAll(specification);
     }
 
 }

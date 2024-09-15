@@ -4,6 +4,7 @@ import com.TrungTinhFullStack.blog_backend_http.Dto.ReqRes;
 import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Repository.NotificationRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
+import com.TrungTinhFullStack.blog_backend_http.Service.EmailService;
 import com.TrungTinhFullStack.blog_backend_http.Service.Jwt.JwtUtils;
 import com.TrungTinhFullStack.blog_backend_http.Service.UserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,8 +25,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -44,6 +47,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     private static final String UPLOAD_DIR = "/uploads";
 
@@ -209,5 +215,57 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(enable);
         userRepository.save(user);
     }
+
+    @Override
+    public String sendOtpToEmail(String email) {
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            return("Email không tồn tại trong hệ thống");
+        }
+
+        // Tạo OTP ngẫu nhiên
+        String otp = String.format("%06d", new Random().nextInt(999999));
+
+        // Lưu OTP và thời gian hết hạn
+        user.setOtp(otp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        // Gửi email OTP
+        emailService.send(user.getEmail(), "Mã OTP của bạn",
+                "Mã OTP của bạn là: " + otp + ". OTP này có hiệu lực trong 10 phút.");
+
+        return "Mã OTP đã được gửi đến email của bạn.";
+    }
+
+    @Override
+    public String verifyOtpAndChangePassword(String email, String otp, String newPassword) {
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            return("Email không tồn tại");
+        }
+
+        // Kiểm tra OTP và thời gian hết hạn
+        if (!user.getOtp().equals(otp)) {
+            throw new IllegalArgumentException("OTP không chính xác");
+        }
+
+        if (user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("OTP đã hết hạn");
+        }
+
+        // Cập nhật mật khẩu mới (mã hóa mật khẩu)
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        // Xóa OTP sau khi dùng
+        user.setOtp(null);
+        user.setOtpExpiry(null);
+        userRepository.save(user);
+
+        return "Mật khẩu đã thay đổi thành công!";
+    }
+
 
 }

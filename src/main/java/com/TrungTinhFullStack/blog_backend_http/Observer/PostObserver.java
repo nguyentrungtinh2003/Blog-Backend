@@ -1,4 +1,4 @@
-package com.TrungTinhFullStack.blog_backend_http.observer;
+package com.TrungTinhFullStack.blog_backend_http.Observer;
 
 public class PostObserver implements Observer{
 

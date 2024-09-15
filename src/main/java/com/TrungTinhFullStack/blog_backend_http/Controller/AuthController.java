@@ -75,4 +75,21 @@ public class AuthController {
     public void enableUser(@PathVariable Long userId, @RequestParam boolean enable) {
         userService.enableUser(userId, enable);
     }
+
+    // API gửi OTP đến email
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        return ResponseEntity.ok(userService.sendOtpToEmail(email));
+    }
+
+    // API xác nhận OTP và thay đổi mật khẩu
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String otp = request.get("otp");
+        String newPassword = request.get("newPassword");
+
+        return ResponseEntity.ok(userService.verifyOtpAndChangePassword(email, otp, newPassword));
+    }
 }

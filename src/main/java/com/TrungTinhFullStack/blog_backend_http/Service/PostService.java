@@ -18,4 +18,5 @@ public interface PostService {
     void deletePost(Long postId);
     Post findById(Long postId);
     List<Post> findByPostedById(Long id);
+    List<Post> searchPosts(String author, String title, String content);
 }

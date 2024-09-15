@@ -35,4 +35,6 @@ public interface UserService {
     User updateUser(Long id, String username, String password, String email, MultipartFile img);
     void deleteUser(Long id);
     void enableUser(Long userId, boolean enable);
+    String sendOtpToEmail(String email);
+    String verifyOtpAndChangePassword(String email, String otp, String newPassword);
 }

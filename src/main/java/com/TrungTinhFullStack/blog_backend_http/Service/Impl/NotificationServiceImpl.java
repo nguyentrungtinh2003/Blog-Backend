@@ -4,7 +4,6 @@ import com.TrungTinhFullStack.blog_backend_http.Entity.Notification;
 import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Repository.NotificationRepository;
 import com.TrungTinhFullStack.blog_backend_http.Service.NotificationService;
-import com.TrungTinhFullStack.blog_backend_http.observer.Observable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

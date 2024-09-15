@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,6 +29,10 @@ public class User implements UserDetails {
 
     private String img;
 
+    // Trường để lưu OTP và thời gian hết hạn OTP
+    private String otp;
+    private LocalDateTime otpExpiry;
+
     @Column(nullable = false)
     private boolean enabled;
 
@@ -48,6 +53,17 @@ public class User implements UserDetails {
         this.img = img;
         this.password = password;
         this.username = username;
+        this.enabled = enabled;
+    }
+
+    public User(Long id, String username, String password, String email, String img, String otp, LocalDateTime otpExpiry, boolean enabled) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.img = img;
+        this.otp = otp;
+        this.otpExpiry = otpExpiry;
         this.enabled = enabled;
     }
 
