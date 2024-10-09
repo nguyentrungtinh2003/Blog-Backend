@@ -48,13 +48,12 @@ public class PostController {
                            @RequestParam("postedBy") Long userId,
                            @RequestParam("img") MultipartFile img,
                            @RequestParam("tags") List<String> tags,
-                           @RequestParam("category") Long category,
-                           @RequestParam("recipientEmail") String recipientEmail,
-                           @RequestParam("notificationType") String notificationType) throws IOException {
+                           @RequestParam("category") Long category
+                           ) throws IOException {
 
-        String message = "Người dùng đã tạo bài viết " + name;
-        // Gửi thông báo dựa trên loại (EMAIL, SMS, PUSH)
-        notificationFacService.sendNotification(notificationType, message, recipientEmail);
+//        String message = "Người dùng đã tạo bài viết " + name;
+//        // Gửi thông báo dựa trên loại (EMAIL, SMS, PUSH)
+//        notificationFacService.sendNotification(notificationType, message, recipientEmail);
 
         return postService.createPost(name, content, userId, img, tags, category);
     }
