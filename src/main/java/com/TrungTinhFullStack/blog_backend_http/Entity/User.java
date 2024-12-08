@@ -1,6 +1,9 @@
 package com.TrungTinhFullStack.blog_backend_http.Entity;
 
 import com.TrungTinhFullStack.blog_backend_http.Service.Jwt.UserDetailsService;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +38,22 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private boolean enabled;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Chat> chat;
+
+    public User(Long id, String username, String password, String email, String img, String otp, LocalDateTime otpExpiry, boolean enabled, List<Chat> chat) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.img = img;
+        this.otp = otp;
+        this.otpExpiry = otpExpiry;
+        this.enabled = enabled;
+        this.chat = chat;
+    }
 
     public User() {
 
