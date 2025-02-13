@@ -1,14 +1,15 @@
-# Use OpenJDK image
-FROM openjdk:17-jdk-slim
-
-# Set the working directory
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy the JAR file into the container
-COPY target/blog_backend_http-0.0.1-SNAPSHOT.jar /app/blog_backend_http-0.0.1-SNAPSHOT.jar
+COPY . .
 
-# Expose the port the app runs on
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8081
 
-# Command to run the application
-ENTRYPOINT ["java", "-jar", "blog_backend_http-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
