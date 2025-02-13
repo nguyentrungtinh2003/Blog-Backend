@@ -5,6 +5,7 @@ import com.TrungTinhFullStack.blog_backend_http.Entity.User;
 import com.TrungTinhFullStack.blog_backend_http.Repository.NotificationRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
 import com.TrungTinhFullStack.blog_backend_http.Service.EmailService;
+import com.TrungTinhFullStack.blog_backend_http.Service.ImgService;
 import com.TrungTinhFullStack.blog_backend_http.Service.Jwt.JwtUtils;
 import com.TrungTinhFullStack.blog_backend_http.Service.UserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -51,8 +52,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private EmailService emailService;
 
-    private static final String UPLOAD_DIR = "/uploads";
-
+    @Autowired
+    private ImgService imgService;
 
     @Override
     public ReqRes login(ReqRes reqRes, HttpServletResponse response) {
@@ -105,24 +106,16 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByUsername(username) != null) {
             throw new RuntimeException("Username already exists");
         }
-        // Tạo thư mục uploads nếu chưa tồn tại
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+
+        if(img != null) {
+            user.setImg(imgService.uploadImg(img));
         }
-
-        // Xử lý tệp hình ảnh
-        String fileName = img.getOriginalFilename();
-        Path filePath = uploadPath.resolve(fileName);
-        Files.write(filePath, img.getBytes());
-
 
         // Hash the password before saving
 //        String hashedPassword = hashPassword(password);
         user.setPassword(passwordEncoder.encode(password));
         user.setUsername(username);
         user.setEmail(email);
-        user.setImg(fileName);
         user.setEnabled(true);
 
         // Save the user
@@ -192,7 +185,11 @@ public class UserServiceImpl implements UserService {
                     user.setEmail(email);
                     // Update other fields as necessary
                     if (img != null && !img.isEmpty()) {
-                        user.setImg(img.getOriginalFilename());
+                        try {
+                            user.setImg(imgService.updateImg(user.getImg(),img));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                     return userRepository.save(user);
                 })

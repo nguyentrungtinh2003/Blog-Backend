@@ -24,7 +24,7 @@ public class ChatController {
     private UserService userService;
 
     @MessageMapping("/sendMessage")
-    @SendTo("/topic/messages")
+   @SendTo("/topic/messages")
     public Chat sendMessage(Chat chat) {
         if(chat.getUser().getId() == null) {
             throw new RuntimeException("User not found");

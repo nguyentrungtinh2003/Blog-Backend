@@ -8,6 +8,7 @@ import com.TrungTinhFullStack.blog_backend_http.Repository.CategoryRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.NotificationRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.PostRepository;
 import com.TrungTinhFullStack.blog_backend_http.Repository.UserRepository;
+import com.TrungTinhFullStack.blog_backend_http.Service.ImgService;
 import com.TrungTinhFullStack.blog_backend_http.Service.NotificationService;
 import com.TrungTinhFullStack.blog_backend_http.Service.PostService;
 import com.TrungTinhFullStack.blog_backend_http.Specification.PostSpecification;
@@ -41,23 +42,17 @@ public class PostServiceImpl implements PostService {
     private NotificationService notificationService;
 
     @Autowired
+    private ImgService imgService;
+
+    @Autowired
     private UserRepository userRepository;
-    private static final String UPLOAD_DIR = "uploads/";
 
     public Post createPost(String name, String content, Long userId, MultipartFile img, List<String> tags,Long category) throws IOException {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         Category category1 = categoryRepository.findById(category).orElse(null);
         // Tạo thư mục uploads nếu chưa tồn tại
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // Xử lý tệp hình ảnh
-        String fileName = img.getOriginalFilename();
-        Path filePath = uploadPath.resolve(fileName);
-        Files.write(filePath, img.getBytes());
+       String fileName = imgService.uploadImg(img);
 
         // Tạo đối tượng Post
         Post post = new Post();
@@ -148,10 +143,8 @@ public class PostServiceImpl implements PostService {
 
 
         if (img != null && !img.isEmpty()) {
-            byte[] bytes = img.getBytes();
-            Path path = Paths.get("uploads/" + img.getOriginalFilename());
-            Files.write(path, bytes);
-            post.setImg(img.getOriginalFilename());
+
+            post.setImg(imgService.updateImg(post.getImg(),img));
         }
 
         return postRepository.save(post);
